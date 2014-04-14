@@ -54,8 +54,9 @@ if ($context == "meta" or $context == "control") {
       include_once "./header.php";
       include_once "./physical_view.php";
 } else if ($context == "node") {
-      $title = "$hostname Node View";
-      include_once "./header.php";
+	  $title = "$hostname Node View";
+	  if(!isset($_GET['json']))
+         include_once "./header.php";
       include_once "./show_node.php";
 } else if ($context == "host") {
       $title = "$hostname Host Report";
@@ -77,6 +78,8 @@ if ($context == "meta" or $context == "control") {
       $title = "Unknown Context";
       print "Unknown Context Error: Have you specified a host but not a cluster?.";
 }
-include_once "./footer.php";
+
+if(!isset($_GET['json']))
+   include_once "./footer.php";
 
 ?>

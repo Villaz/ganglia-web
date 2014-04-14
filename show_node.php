@@ -11,8 +11,8 @@
 # Originally by Federico Sacerdoti <fds@sdsc.edu>
 #
 # Host is specified in get_context.php.
-
-if (empty($hostname)) {
+$user['json_output'] = isset($_GET["json"]) ? 1 : NULL;
+if (empty($hostname) && !$user['json_output']) {
    print "<h1>Missing a Node Name</h1>";
    return;
 }
@@ -141,5 +141,37 @@ $data->assign("full_host_view","./?c=$cluster_url&amp;h=$hostname&amp;$get_metri
 # For the reload link.
 $data->assign("self","./?c=$cluster_url&amp;h=$hostname&amp;p=$physical");
 
-$dwoo->output($tpl, $data);
+if(!$user['json_output'])
+   $dwoo->output($tpl, $data);
+else
+{
+	header("Content-type: application/json");
+    header("Content-Disposition: inline; filename=\"ganglia-metrics.json\"");
+    $json_array = array();
+    $json_array['CPUs']['num'] = $cpu_num;
+    $json_array['CPUs']['speed'] = strval($cpu_speed);
+    $json_array['MEM'] = sprintf("%.2f", $mem_total_gb);
+    $json_array['DISK']['TOTAL'] = $disk_total;
+    $json_array['DISK']['USE'] = strval($disk_use);
+    $json_array['DISK']['FREE'] = $disk_free;
+    $json_array['DISK']['UNIT'] = $disk_units;
+    $json_array['CPU']['user'] = $cpu_user=$metrics['cpu_user']['VAL'];
+    $json_array['CPU']['system'] = $cpu_system=$metrics['cpu_system']['VAL'];
+    $json_array['CPU']['idle'] = $cpu_idle=$metrics['cpu_idle']['VAL'];
+    $json_array['CLUSTER_TIME'] = $clustertime;
+    $json_array['HEARTBEAT'] = $hostattrs['REPORTED'];
+    $json_array['LOCALTIME'] = $cluster['LOCALTIME'];
+    $json_array['BOOTTIME'] = $boottime;
+    $json_array['UPTIME'] = strval($cluster['LOCALTIME'] - $metrics['boottime']['VAL']);
+    $json_array['LOAD']['ONE'] =$load_one;
+    $json_array['LOAD']['FIVE'] =$load_five;
+    $json_array['LOAD']['TEN'] =$load_fifteen;
+    $json_array['SWAP']['FREE'] = $swap_free;
+    $json_array['SWAP']['TOTAL'] = $swap_total;
+    $json_array['SWAP']['USE'] = $swap_used;
+    $json_array['OS'] = "$os_name $os_release ($machine_type)";
+    
+    print json_encode($json_array);
+}
+
 ?>
